@@ -19,6 +19,13 @@ app.use('/accounts', require('./accounts/accounts.controller'));
 // swagger docs route
 app.use('/api-docs', require('_helpers/swagger'));
 
+app.use((err, req, res, next) => {
+    if (err.name === 'UnauthorizedError') {
+        return res.status(401).json({ message: 'Invalid or missing token' });
+    }
+    next(err);
+});
+
 // global error handler
 app.use(errorHandler);
 

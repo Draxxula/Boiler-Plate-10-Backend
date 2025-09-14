@@ -33,7 +33,8 @@ async function authenticate({ email, password, ipAddress }) {
     // authentication successful so generate jwt and refresh tokens
     const jwtToken = generateJwtToken(account);
     const refreshToken = generateRefreshToken(account, ipAddress);
-  
+    // 🔑 Sign a JWT with the account id
+    const token = jwt.sign({ id: account.id }, config.secret, { expiresIn: '15m' });
     // save refresh token
     await refreshToken.save();
   
@@ -59,6 +60,17 @@ async function refreshToken({ token, ipAddress }) {
   
     // generate new jwt
     const jwtToken = generateJwtToken(account);
+
+    const jwt = require('jsonwebtoken');
+    const config = require('config.json');
+
+    function generateJwtToken(account) {
+      return jwt.sign(
+        { id: account.id, role: account.role },   // include role
+        config.secret,
+        { expiresIn: '15m' }
+      );
+    }
   
     // return basic details and tokens
     return {

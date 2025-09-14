@@ -13,8 +13,8 @@ function authorize(roles = []) {
 
     return [
         // authenticate JWT token and attach user to request object (req.user)
-        expressjwt({ secret: config.secret, algorithms: ['HS256'] }),
-
+         expressjwt({ secret: config.secret, algorithms: ['HS256'], requestProperty: 'user' }),
+        
         // authorize based on user role
         async (req, res, next) => {
             // Safely check if req.user exists before accessing its properties

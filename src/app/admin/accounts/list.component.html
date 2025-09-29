@@ -1,32 +1,68 @@
-﻿<h1>Accounts</h1>
-<p>All accounts from secure (admin only) api end point:</p>
-<a routerLink="add" class="btn btn-sm btn-success mb-2">Create Account</a>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th style="width:30%">Name</th>
-            <th style="width:30%">Email</th>
-            <th style="width:30%">Role</th>
-            <th style="width:10%"></th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let account of accounts">
-            <td class="align-middle">{{account.title}} {{account.firstName}} {{account.lastName}}</td>
-            <td class="align-middle">{{account.email}}</td>
-            <td class="align-middle">{{account.role}}</td>
-            <td style="white-space: nowrap">
-                <a routerLink="edit/{{account.id}}" class="btn btn-sm btn-primary me-1">Edit</a>
-                <button (click)="deleteAccount(account.id)" class="btn btn-sm btn-danger btn-delete-account" [disabled]="account.isDeleting">
-                    <span *ngIf="account.isDeleting" class="spinner-border spinner-border-sm"></span>
-                    <span *ngIf="!account.isDeleting">Delete</span>
-                </button>
-            </td>
-        </tr>
-        <tr *ngIf="!accounts">
-            <td colspan="4" class="text-center">
-                <span class="spinner-border spinner-border-lg align-center"></span>
-            </td>
-        </tr>
-    </tbody>
-</table>
+﻿<div class="container mt-4">
+  <h2>Accounts</h2>
+  <p class="text-muted">All accounts from the secure (admin only)</p>
+
+    <div>
+        <a routerLink="create" class="btn btn-success btn-sm mb-3">
+            Add Account
+        </a>
+    </div>
+
+        <!-- Accounts Table -->
+
+    <div>
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width: 10%">Title</th>
+                    <th style="width: 20%">First Name</th>
+                    <th style="width: 20%">Last Name</th>
+                    <th style="width: 20%">Email</th>
+                    <th style="width: 10%">Role</th>
+                    <th style="width: 10%">Status</th>
+                    <th style="width: 10%">Actions</th>
+                </tr>
+            </thead>   
+            <tbody>
+            <tr *ngFor="let account of accounts">
+                <td class="align-middle">{{ account.title }}</td>
+                <td class="align-middle">{{ account.firstName }}</td>
+                <td class="align-middle">{{ account.lastName }}</td>
+                <td class="align-middle">{{ account.email }}</td>
+                <td class="align-middle">{{ account.role }}</td>
+                <td class="align-middle">
+                    <span 
+                        class="badge" 
+                        [ngClass]="{
+                            'bg-success': account.status === 'Active',
+                            'bg-danger': account.status === 'Inactive'
+                            }">
+                            {{ account.status }}
+                    </span>
+                </td>
+                <td class="align-middle white-space-nowrap" style="padding-inline: 18px;">
+                    <button routerLink="edit/{{ account.id }}" class="btn btn-secondary btn-sm me-3">
+                        Edit
+                    </button>
+                </td>
+            </tr>
+                
+
+             <!-- Show spinner when accounts are not yet loaded -->
+            <tr *ngIf="!accounts">
+                <td colspan="4" class="text-center">
+                <span class="spinner-border spinner-border-lg"></span>
+                </td>
+            </tr>
+
+                <!-- Show message when there are no accounts -->
+            <tr *ngIf="accounts && accounts.length === 0">
+                <td colspan="4" class="text-center text-muted">
+                No accounts found.
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    
+</div>

@@ -12,16 +12,21 @@ export class ListComponent implements OnInit {
     ngOnInit() {
         this.accountService.getAll()
             .pipe(first())
-            .subscribe(accounts => this.accounts = accounts);
+            .subscribe(accounts => {
+
+            console.log('Accounts from backend:', accounts);  // 👈 add this
+            
+            this.accounts = accounts;
+        });
     }
 
-    deleteAccount(id: string) {
-        const account = this.accounts!.find(x => x.id === id);
-        account.isDeleting = true;
-        this.accountService.delete(id)
-            .pipe(first())
-            .subscribe(() => {
-                this.accounts = this.accounts!.filter(x => x.id !== id)
-            });
-    }
+    // deleteAccount(id: string) {
+    //     const account = this.accounts!.find(x => x.id === id);
+    //     account.isDeleting = true;
+    //     this.accountService.delete(id)
+    //         .pipe(first())
+    //         .subscribe(() => {
+    //             this.accounts = this.accounts!.filter(x => x.id !== id)
+    //         });
+    // }
 }

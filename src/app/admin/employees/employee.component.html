@@ -1,0 +1,47 @@
+<div class="container mt-4">
+  <h2>Employees</h2>
+  <p class="text-muted">All employees from the secure (admin only)</p>
+
+  <div>
+    <a routerLink="create" class="btn btn-success btn-sm mb-3">
+      Add Employee
+    </a>
+  </div>
+
+  <table class="table table-striped table-hover">
+    <thead class="table-dark">
+      <tr>
+        <th style="width: 10%">Employee ID</th>
+        <th style="width: 20%">Account</th>
+        <th style="width: 10%">Position</th>
+        <th style="width: 10%">Department</th>
+        <th style="width: 10%">Hire Date</th>
+        <th style="width: 10%">Status</th>
+        <th style="width: 250px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let employee of employees">
+        <td class="align-middle">{{ employee.employeeId }}</td>
+        <td class="align-middle">{{ employee.account?.email }}</td>
+        <td class="align-middle">{{ employee.position }}</td>
+        <td class="align-middle">{{ employee.department?.name }}</td>
+        <td class="align-middle">{{ employee.hireDate | date:'MM/dd/yyyy' }}</td>
+        <td class="align-middle">
+          <span class="badge bg-success" *ngIf="employee.status === 'Active'">Active</span>
+          <span class="badge bg-danger" *ngIf="employee.status !== 'Active'">Inactive</span>
+        </td>
+        <td class="align-middle">
+          <button class="btn btn-info btn-sm me-1">Requests</button>
+          <button class="btn btn-primary btn-sm me-1">Workflows</button>
+          <button class="btn btn-warning btn-sm me-1">Transfer</button>
+          <button 
+            [routerLink]="['edit', employee.employeeId]" 
+            class="btn btn-primary btn-sm">
+            Edit
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

@@ -49,7 +49,7 @@ async function authenticate({ email, password, ipAddress }) {
 async function refreshToken({ token, ipAddress }) {
     const refreshToken = await getRefreshToken(token);
     const account = await refreshToken.getAccount();
-  
+
     // replace old refresh token with a new one and save
     const newRefreshToken = generateRefreshToken(account, ipAddress);
     refreshToken.revoked = Date.now();
@@ -57,27 +57,17 @@ async function refreshToken({ token, ipAddress }) {
     refreshToken.replacedByToken = newRefreshToken.token;
     await refreshToken.save();
     await newRefreshToken.save();
-  
+
     // generate new jwt
     const jwtToken = generateJwtToken(account);
 
-    const jwt = require('jsonwebtoken');
-    const config = require('config.json');
-
-    function generateJwtToken(account) {
-      return jwt.sign(
-        { id: account.id, role: account.role },   // include role
-        config.secret,
-        { expiresIn: '15m' }
-      );
-    }
-  
     // return basic details and tokens
     return {
       ...basicDetails(account),
       jwtToken,
       refreshToken: newRefreshToken.token
     };
+      
   }
   
 async function revokeToken({ token, ipAddress }) {
@@ -180,36 +170,67 @@ async function register(params, origin) {
   
     const account = new db.Account(params);
     account.verified = Date.now();
+
+    console.log("Incoming request body:", params);
   
     // hash password
     account.passwordHash = await hash(params.password);
-  
+    
     // save account
     await account.save();
+
+    console.log("Created account:", account.toJSON());
   
     return basicDetails(account);
+
+    //return account.toJSON();
   }
 
-  async function update(id, params) {
-    const account = await getAccount(id);
-  
-    // validate (if email was changed)
-    if (params.email && account.email !== params.email && await db.Account.findOne({ where: { email: params.email } })) {
-      throw `Email "${params.email}" is already taken`;
-    }
-  
-    // hash password if it was entered
-    if (params.password) {
-      params.passwordHash = await hash(params.password);
-    }
-  
-    // copy params to account and save
-    Object.assign(account, params);
-    account.updated = Date.now();
-    await account.save();
-  
-    return basicDetails(account);
+async function update(id, params) {
+  const account = await getAccount(id);
+
+  console.log("Incoming params:", params);
+  console.log("Account before save:", account.toJSON());
+
+  // Check email conflict
+  if (params.email && account.email !== params.email &&
+      await db.Account.findOne({ where: { email: params.email } })) {
+    throw `Email "${params.email}" is already taken`;
   }
+
+  // Only update allowed fields
+  const allowedFields = ['title', 'firstName', 'lastName', 'email', 'role', 'status'];
+  allowedFields.forEach(field => {
+    if (params[field] !== undefined) {
+      account[field] = params[field];
+    }
+  });
+
+  // Hash password if provided
+  if (params.password) {
+    account.passwordHash = await hash(params.password);
+  }
+
+  // Set updated timestamp
+  account.updated = new Date();
+
+  // Save changes
+  await account.save();
+
+  console.log("Updated account:", account.toJSON());
+
+  // ✅ Cascade status to employee if account has a linked employee
+  //   if (params.status) {
+  //   const employee = await db.Employee.findOne({ where: { accountId: id } });
+  //   if (employee) {
+  //     employee.status = params.status;
+  //     await employee.save();
+  //     console.log(`Employee ${employee.employeeId} set to Inactive due to account status.`);
+  //   }
+  // }
+
+  return basicDetails(account);
+}
   
   async function _delete(id) {
     const account = await getAccount(id);
@@ -236,7 +257,12 @@ async function register(params, origin) {
   
   function generateJwtToken(account) {
     // create a jwt token containing the account id that expires in 15 minutes
-    return jwt.sign({ sub: account.id, id: account.id }, config.secret, { expiresIn: '15m' });
+      return jwt.sign(
+        { id: account.id, role: account.role },   // include role
+        config.secret,
+        { expiresIn: '15m' }
+      );
+    
   }
 
   function generateRefreshToken(account, ipAddress) {
@@ -254,8 +280,8 @@ async function register(params, origin) {
   }
   
   function basicDetails(account) {
-    const { id, title, firstName, lastName, email, role, created, updated, isVerified } = account;
-    return { id, title, firstName, lastName, email, role, created, updated, isVerified };
+    const { id, title, firstName, lastName, email, status, role, created, updated, isVerified } = account;
+    return { id, title, firstName, lastName, email, status, role, created, updated, isVerified };
   }
   
   async function sendVerificationEmail(account, origin) {
@@ -285,7 +311,8 @@ async function register(params, origin) {
         <p>If you don't know your password please visit the <a href="${origin}/account/forgot-password">forgot password</a> page.</p>`;
     } else {
       message = `
-        <p>If you don't know your password you can reset it via the <code>/account/forgot-password</code> api route.</p>`;
+        <p>If you don't know your password you can reset it via the <code>/account/forgot-password</code> api route:</p>
+        <p><code>${account.resetToken}</code></p>`;
     }
   
     await sendEmail({

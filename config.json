@@ -7,14 +7,14 @@
       "password": "root074203",
       "database": "node-mysql-signup-verification-api"
     },
-    "secret": "2fa1c7cd-8729-405f-93ef-98ad1484b471",
+    "secret": "9087cae9-0886-407e-8cd0-32ab52be42a7",
     "emailFrom": "info@node-mysql-signup-verification-api.com",
     "smtpOptions": {
       "host": "smtp.ethereal.email",
       "port": 587,
       "auth": {
-        "user": "jayson.kemmer5@ethereal.email",
-        "pass": "E89NZKuAw34xGxuMR3"
+        "user": "casper.wiegand@ethereal.email",
+        "pass": "gc2GbPC277MUW4FmY9"
       }
     }
   }

@@ -19,7 +19,7 @@ router.get('/', authorize(Role.Admin), getAll);
 router.get('/:id', authorize([Role.Admin, Role.User]), getById);
 router.get('/', authorize([Role.Admin, Role.User]), getById);
 router.get('/:id', authorize(), getById);
-router.get('/', authorize(Role.Admin), createSchema, create);
+router.post('/', authorize(Role.Admin), createSchema, create);
 router.put('/:id', authorize(), updateSchema, update);
 router.delete('/:id', authorize(), _delete);
 
@@ -195,6 +195,7 @@ function authenticateSchema(req, res, next) {
       lastName: Joi.string().empty(''),
       email: Joi.string().email().empty(''),
       password: Joi.string().min(6).empty(''),
+      status: Joi.string().valid('Active', 'Inactive').empty(''),
       confirmPassword: Joi.string().valid(Joi.ref('password')).empty('')
     };
   
@@ -208,6 +209,9 @@ function authenticateSchema(req, res, next) {
   }
   
   function update(req, res, next) {
+
+    console.log('PUT body:', req.body);
+
     // users can update their own account and admins can update any account
     if (Number(req.params.id) !== req.user.id && req.user.role !== Role.Admin) {
       return res.status(401).json({ message: 'Unauthorized' });

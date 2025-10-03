@@ -1,5 +1,5 @@
 <div class="container mt-4">
-  <h3>Departments</h3>
+  <h2>Departments</h2>
   <p class="text-muted">All departments from the secure (admin only)</p>
 
   <div>
@@ -22,7 +22,7 @@
           <td>{{ dept.description }}</td>
           <td>{{ dept.employeeCount }}</td>
           <td>
-            <a [routerLink]="['/admin/departments/edit', dept.id]" class="btn btn-primary btn-sm">Edit</a>
+            <a [routerLink]="['/admin/departments/edit', dept.id]" class="actionbutton btn btn-secondary btn-sm px-4">Edit</a>
           </td>
         </tr>
       </tbody>

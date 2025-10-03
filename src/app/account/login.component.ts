@@ -50,7 +50,11 @@ export class LoginComponent implements OnInit {
                     this.router.navigateByUrl(returnUrl);
                 },
                 error: error => {
-                    this.alertService.error(error);
+                    if (error.includes('inactive')) {
+                        this.alertService.error('Your account is inactive. Please contact your administrator.');
+                    } else {
+                        this.alertService.error(error);
+                    }
                     this.submitting = false;
                 }
             });

@@ -5,11 +5,13 @@ import { DepartmentRoutingModule } from './department-routing.module';
 
 import { DepartmentComponent } from './department.component';
 import { AddDepartmentComponent } from './add-department.component';
+import { EditDepartmentComponent } from './edit-department.component';
 
 @NgModule({
   declarations: [
     DepartmentComponent,
-    AddDepartmentComponent
+    AddDepartmentComponent,
+    EditDepartmentComponent
   ],
   imports: [
     CommonModule,

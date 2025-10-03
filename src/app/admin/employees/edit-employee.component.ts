@@ -1,12 +1,14 @@
+// Edit Employee Component - TypeScript
+// src/app/admin/employees/edit-employee.component.ts
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { first } from 'rxjs/operators';
 import { forkJoin } from 'rxjs';
 
-import { EmployeeService } from './employee.service';
-import { AccountService } from '../accounts/account.service';
-import { DepartmentService } from '../departments/department.service';
+import { EmployeeService } from '../../_services/employee.service';
+import { AccountService } from '../../_services/accounts.service';
+import { DepartmentService } from '../../_services/department.service';
 import { AlertService } from '@app/_services';
 
 @Component({ 
@@ -76,7 +78,8 @@ export class EditEmployeeComponent implements OnInit {
       .pipe(first())
       .subscribe({
         next: ({ accounts, departments, employee }) => {
-          this.accounts = accounts.filter(acc => acc.status === 'Active');
+          // this.accounts = accounts.filter(acc => acc.status === 'Active');
+          this.accounts = accounts;
           this.departments = departments;
 
           // populate form
@@ -103,36 +106,45 @@ export class EditEmployeeComponent implements OnInit {
   onAccountChange(event: Event) {
     const accountId = (event.target as HTMLSelectElement).value;
     this.selectedAccount = this.accounts.find(acc => acc.id == Number(accountId));
+
+    if (this.selectedAccount && this.selectedAccount.status === 'Inactive') {
+      this.alertService.warn('You selected an inactive account. This will not affect employee status.');
+    }
   }
 
   onSubmit() {
-    this.submitted = true;
-    this.alertService.clear();
+  this.submitted = true;
+  this.alertService.clear();
 
-    if (this.employeeForm.invalid) return;
-
-    this.submitting = true;
-
-    const employeeData = {
-      ...this.employeeForm.getRawValue(),
-      employeeId: this.employeeForm.get('employeeId')?.value,
-      status: this.selectedAccount?.status || this.employeeForm.value.status
-    };
-
-    console.log('Submitting update:', employeeData);
-
-    this.employeeService.update(this.id, employeeData) // use string EMP001
-      .pipe(first())
-      .subscribe({
-        next: () => {
-          this.alertService.success('Employee updated', { keepAfterRouteChange: true });
-          this.router.navigateByUrl('/admin/employees');
-        },
-        error: error => {
-          console.error(error);
-          this.alertService.error(error);
-          this.submitting = false;
-        }
-      });
+  if (this.employeeForm.invalid || !this.selectedAccount) {
+    this.alertService.error('Please complete the form correctly.');
+    return;
   }
+
+  this.submitting = true;
+
+  const employeeData = {
+    ...this.employeeForm.getRawValue(),
+    employeeId: this.employeeForm.get('employeeId')?.value,
+    accountId: this.selectedAccount.id,   // make sure it's sent
+    status: this.employeeForm.value.status // ensure status is included
+  };
+
+  console.log('Submitting update:', employeeData);
+
+  this.employeeService.update(this.id, employeeData)
+    .pipe(first())
+    .subscribe({
+      next: () => {
+        this.alertService.success('Employee updated', { keepAfterRouteChange: true });
+        this.router.navigateByUrl('/admin/employees');
+      },
+      error: error => {
+        console.error(error);
+        this.alertService.error(error);
+        this.submitting = false;
+      }
+    });
+}
+
 }

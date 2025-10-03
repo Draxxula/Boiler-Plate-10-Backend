@@ -5,8 +5,8 @@ import { first } from 'rxjs/operators';
 import { AlertService } from '@app/_services';
 import { AccountService } from '@app/_services';
 //import { AccountService } from '../accounts/account.service';
-import { DepartmentService } from '../departments/department.service';
-import { EmployeeService } from './employee.service';
+import { DepartmentService } from '../../_services/department.service';
+import { EmployeeService } from '../../_services/employee.service';
 
 @Component({
   templateUrl: './add-employee.component.html'
@@ -58,10 +58,16 @@ export class AddEmployeeComponent implements OnInit {
 
     get f() { return this.employeeForm.controls; }
     
-    loadAccounts() {
-    this.accountService.getAll().subscribe((data: any[]) => {
-      //Only include accounts with status Active
-      this.accounts = data.filter(acc => acc.status === 'Active');
+  loadAccounts() {
+    this.accountService.getAll().subscribe((accounts: any[]) => {
+      this.employeeService.getAll().subscribe((employees: any[]) => {
+        const usedAccountIds = employees.map(emp => emp.accountId);
+
+        this.accounts = accounts.map(acc => ({
+          ...acc,
+          isUsed: usedAccountIds.includes(acc.id) // mark if used
+        }));
+      });
     });
   }
 
@@ -71,39 +77,43 @@ export class AddEmployeeComponent implements OnInit {
       });
     }
 
-    onAccountChange(accountId: string) {
-    this.selectedAccount = this.accounts.find(acc => acc.id == accountId);
+  onAccountChange(accountId: string) {
+  this.selectedAccount = this.accounts.find(acc => acc.id == Number(accountId));
     if (this.selectedAccount) {
-      // Set employee status to match the selected account
-      this.employeeForm.patchValue({ status: this.selectedAccount.status });
+      this.employeeForm.patchValue({
+        status: this.selectedAccount.status
+      });
     }
   }
 
+
   onSubmit() {
-    this.submitted = true;
-    this.alertService.clear();
-  
-    console.log("Submitting form data:", this.employeeForm.value);
-  
-    if (this.employeeForm.invalid) return;
-  
-      this.submitting = true;
+  this.submitted = true;
+  this.alertService.clear();
 
-          // Create employee data
-      this.accountService.create(this.employeeForm.value)
+  console.log("Submitting form data:", this.employeeForm.getRawValue());
+  
 
-        .pipe(first())
-        .subscribe({
-          next: () => {
-            this.alertService.success('Employee Created', { keepAfterRouteChange: true });
-            this.router.navigateByUrl('/admin/employees');
-            },
-            error: error => {
-            this.alertService.error(error);
-            this.submitting = false;
-            }
-        });
-    }
+  if (this.employeeForm.invalid) return;
+
+  this.submitting = true;
+
+  const employeeData = this.employeeForm.getRawValue(); // 👈 keep form values
+
+  this.employeeService.create(employeeData)
+    .pipe(first())
+    .subscribe({
+      next: () => {
+        this.alertService.success('Employee Created', { keepAfterRouteChange: true });
+        this.router.navigateByUrl('/admin/employees');
+      },
+      error: error => {
+        console.error(error);
+        this.alertService.error(error);
+        this.submitting = false;
+      }
+    });
+}
 
   generateNextEmployeeId() {
     this.employeeService.getAll().subscribe((employees: any[]) => {

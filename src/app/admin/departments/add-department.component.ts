@@ -1,7 +1,9 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { DepartmentService } from './department.service';
+import { DepartmentService } from '../../_services/department.service';
+import { AlertService } from '@app/_services';
+import { first } from 'rxjs/operators';
 
 @Component({
   selector: 'app-add-department',
@@ -9,11 +11,15 @@ import { DepartmentService } from './department.service';
 })
 export class AddDepartmentComponent {
   departmentForm: FormGroup;
+  submitting = false;
+  submitted = false;
+
 
   constructor(
     private fb: FormBuilder,
     private departmentService: DepartmentService,
-    private router: Router
+    private router: Router,
+    private alertService: AlertService
   ) {
     this.departmentForm = this.fb.group({
       name: ['', Validators.required],
@@ -21,12 +27,31 @@ export class AddDepartmentComponent {
     });
   }
 
-  onSubmit(): void {
-    if (this.departmentForm.valid) {
-      this.departmentService.create(this.departmentForm.value).subscribe({
-        next: () => this.router.navigate(['/admin/departments']),
-        error: (err) => console.error(err)
-      });
-    }
-  }
+  get f() { return this.departmentForm.controls; }
+
+  onSubmit() {
+          this.submitted = true;
+          this.alertService.clear();
+  
+          console.log("Submitting form data:", this.departmentForm.value);
+  
+          if (this.departmentForm.invalid) return;
+  
+          this.submitting = true;
+  
+          //const { confirmPassword, ...account } = this.departmentForm.value;
+  
+          this.departmentService.create(this.departmentForm.value)
+          .pipe(first())
+          .subscribe({
+              next: () => {
+              this.alertService.success('Department created', { keepAfterRouteChange: true });
+              this.router.navigateByUrl('/admin/departments');
+              },
+              error: error => {
+              this.alertService.error(error);
+              this.submitting = false;
+              }
+          });
+      }
 }

@@ -47,6 +47,10 @@ export class EmployeeService {
     return this.http.put<Employee>(`${this.baseUrl}/${id}`, data);
   }
 
+  transferDepartment(id: number, departmentId: number) {
+  return this.http.put(`${this.baseUrl}/employees/${id}/transfer`, { departmentId });
+  }
+  
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }

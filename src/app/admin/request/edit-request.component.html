@@ -1,0 +1,100 @@
+<div class="mt-4" *ngIf="!loading; else loadingTpl">
+
+  <div class="card-header">
+    <h2>EDIT REQUEST</h2>
+    <p class="text-muted">Update request details</p>
+  </div>
+
+  <div class="card-body">
+    <form [formGroup]="requestForm" (ngSubmit)="onSubmit()">
+      <!-- Type -->
+      <div class="mb-3">
+        <label class="form-label">Type</label>
+        <select class="form-control" formControlName="type">
+          <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+
+      <!-- Employee -->
+      <div class="mb-3">
+        <label for="employee" class="form-label">Employee</label>
+        <select
+            id="employee"
+            class="form-select"
+            formControlName="employeeId">
+            <option value="" disabled>Select an employee</option>
+            <option *ngFor="let emp of employees" [value]="emp.id">
+            {{ emp.account?.email }} ({{emp.employeeId}})
+            </option>
+        </select>
+        </div>
+
+      <!-- Items -->
+      <div class="border p-3 mb-3">
+        <label class="form-label">Items</label>
+        <div formArrayName="items">
+          <div
+            class="row g-2 align-items-center mb-2"
+            *ngFor="let item of items.controls; let i = index"
+            [formGroupName]="i"
+          >
+            <div class="col-md-8">
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Name"
+                formControlName="name"
+              />
+            </div>
+            <div class="col-md-3">
+              <input
+                type="number"
+                min="1"
+                class="form-control"
+                placeholder="Quantity"
+                formControlName="quantity"
+              />
+            </div>
+            <div class="col-auto">
+              <button
+                type="button"
+                class="btn btn-danger w-100"
+                (click)="removeItem(i)"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-secondary mt-2" (click)="addItem()">
+          Add Item
+        </button>
+      </div>
+
+      <!-- Status -->
+      <div class="mb-3">
+        <label class="form-label">Status</label>
+        <select class="form-control" formControlName="status">
+          <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+        </select>
+      </div>
+
+      <!-- Buttons -->
+      <div class="mt-4 d-flex justify-content-end">
+        <button type="submit" class="btn btn-primary me-2" [disabled]="submitting">
+          Save
+        </button>
+        <button type="button" class="btn btn-secondary" [routerLink]="['/admin/requests']">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="text-center p-4">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="mt-2">Loading request...</p>
+  </div>
+</ng-template>

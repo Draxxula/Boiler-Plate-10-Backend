@@ -1,4 +1,5 @@
-﻿import { Component, OnInit } from '@angular/core';
+﻿// src/app/admin/accounts/list.component.ts
+import { Component, OnInit } from '@angular/core';
 import { first } from 'rxjs/operators';
 
 import { AccountService } from '@app/_services';

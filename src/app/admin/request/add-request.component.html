@@ -1,0 +1,64 @@
+<!-- src/app/admin/request/add-request.component.html -->
+<div class="container mt-4">
+  <div>
+    <h2>ADD REQUEST</h2>
+    <p class="text-muted">Create a new request</p>
+</div>
+
+  <div class="card-body">
+    <form [formGroup]="requestForm" (ngSubmit)="onSubmit()">
+
+      <!-- Type -->
+      <div class="mb-3">
+        <label>Type</label>
+        <select formControlName="type" class="form-control">
+          <option value="" disabled>-- Select Type --</option>
+          <option value="Equipment">Equipment</option>
+          <option value="Leave">Leave</option>
+          <option value="Resources">Resources</option>
+        </select>
+        <div *ngIf="submitted && f['type'].errors" class="text-danger">
+          Type is required
+        </div>
+      </div>
+
+      <!-- Employee -->
+      <div class="mb-3">
+        <label>Employee</label>
+        <select formControlName="employeeId" class="form-control">
+          <option value="" disabled>-- Select Employee --</option>
+          <option *ngFor="let emp of employees" [value]="emp.employeeId">
+            {{ emp.account?.firstName }} {{ emp.account?.lastName }} ({{ emp.employeeId }})
+          </option>
+        </select>
+        <!-- <input type="text" formControlName="employeeId" class="form-control"/> -->
+        <div *ngIf="submitted && f['employeeId'].errors" class="text-danger">
+          Employee is required
+        </div>
+      </div>
+
+      <!-- Items -->
+      <div formArrayName="items" class="border p-2 mb-3">
+        <label>Items</label>
+        <div *ngFor="let item of items.controls; let i = index" [formGroupName]="i" class="row g-2 mb-2">
+          <div class="col">
+            <input type="text" formControlName="name" placeholder="Item name" class="form-control" />
+          </div>
+          <div class="col-3">
+            <input type="number" formControlName="quantity" class="form-control" />
+          </div>
+          <div class="col-auto">
+            <button type="button" (click)="removeItem(i)" class="btn btn-danger">Remove</button>
+          </div>
+        </div>
+        <button type="button" (click)="addItem()" class="btn btn-secondary btn-sm">Add Item</button>
+      </div>
+
+      <!-- Buttons -->
+      <div class="text-end">
+        <button class="btn btn-primary me-2" [disabled]="submitting">Save</button>
+        <a routerLink="/admin/requests" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>

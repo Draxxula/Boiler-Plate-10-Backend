@@ -24,12 +24,24 @@ module.exports = {
 };
 
 async function authenticate({ email, password, ipAddress }) {
-    const account = await db.Account.scope('withHash').findOne({ where: { email } });
-  
-    if (!account || !account.isVerified || !(await bcrypt.compare(password, account.passwordHash))) {
+  const account = await db.Account.scope('withHash').findOne({ where: { email } });
+
+    // ❌ Account not found or not verified
+    if (!account || !account.isVerified) {
       throw 'Email or password is incorrect';
     }
-  
+
+    // 🚫 Block inactive accounts FIRST
+    if (account.status === 'Inactive') {
+      throw 'Your account is inactive. Please contact the administrator.';
+    }
+
+    // ❌ Wrong password
+    const passwordValid = await bcrypt.compare(password, account.passwordHash);
+    if (!passwordValid) {
+      throw 'Email or password is incorrect';
+    }
+
     // authentication successful so generate jwt and refresh tokens
     const jwtToken = generateJwtToken(account);
     const refreshToken = generateRefreshToken(account, ipAddress);

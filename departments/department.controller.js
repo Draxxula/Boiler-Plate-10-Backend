@@ -45,7 +45,7 @@ function createDepartment(req, res, next) {
 function updateSchema(req, res, next) {
   const schema = Joi.object({
     name: Joi.string().empty(''),
-    description: Joi.string().allow('', null)
+    description: Joi.string().required()
   });
   validateRequest(req, next, schema);
 }

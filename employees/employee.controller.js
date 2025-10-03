@@ -11,6 +11,7 @@ router.get('/', authorize(Role.Admin), getAllEmployees);
 router.get('/:id', authorize([Role.Admin, Role.User]), getById);
 router.post('/', authorize(Role.Admin), createSchema, createEmployee);
 router.put('/:id', authorize(Role.Admin), updateSchema, update);
+router.put('/:id/transfer', authorize(Role.Admin), transferDepartment);
 router.delete('/:id', authorize(Role.Admin), _delete);
 
 module.exports = router;
@@ -60,6 +61,12 @@ function updateSchema(req, res, next) {
 
 function update(req, res, next) {
   employeeService.update(req.params.id, req.body)
+    .then(employee => res.json(employee))
+    .catch(next);
+}
+
+function transferDepartment(req, res, next) {
+  employeeService.transferDepartment(req.params.id, req.body)
     .then(employee => res.json(employee))
     .catch(next);
 }

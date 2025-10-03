@@ -1,3 +1,4 @@
+// employees/employee.service.js
 const db = require('_helpers/db');
 
 module.exports = {
@@ -5,6 +6,8 @@ module.exports = {
   getById,
   create,
   update,
+  transferDepartment,
+  basicDetails,
   delete: _delete
 };
 
@@ -33,20 +36,46 @@ async function getById(id) {
 
 // Create new employee
 async function create(params) {
-  // make sure account exists
-  const account = await db.Account.findByPk(params.accountId);
-  if (!account) throw 'Account not found';
+  // Convert IDs to numbers
+  params.accountId = Number(params.accountId);
+  params.departmentId = Number(params.departmentId);
 
-  // create employee
-  const employee = await db.Employee.create(params);
-  return employee;
+  // ✅ Make sure account exists
+  const account = await db.Account.findByPk(params.accountId);
+  if (!account) throw `Account with ID "${params.accountId}" not found`;
+
+  // ✅ Prevent assigning an account that’s already linked
+  const existing = await db.Employee.findOne({ where: { accountId: params.accountId } });
+  if (existing) throw `Account ID "${params.accountId}" is already assigned to another employee`;
+
+  // ✅ Create employee
+  const employee = await db.Employee.create({
+    ...params,
+    created: Date.now(),
+    updated: Date.now()
+  });
+
+  return await db.Employee.findByPk(employee.id, {
+    include: [
+      { model: db.Account, as: 'account', attributes: ['id', 'email', 'firstName', 'lastName'] },
+      { model: db.Department, as: 'department', attributes: ['id', 'name'] }
+    ]
+  });
 }
 
 // Update employee
 async function update(id, params) {
   const employee = await getEmployee(id);
 
-  // Check for duplicate email if updating
+  // ✅ Prevent assigning the same account to multiple employees
+  if (params.accountId && params.accountId !== employee.accountId) {
+    const existing = await db.Employee.findOne({ where: { accountId: params.accountId } });
+    if (existing) {
+      throw `Account ID "${params.accountId}" is already assigned to another employee`;
+    }
+  }
+
+  // ✅ Optional: keep email uniqueness check if your model has an email field
   if (
     params.email &&
     employee.email !== params.email &&
@@ -60,16 +89,15 @@ async function update(id, params) {
 
   await employee.save();
 
-   // Re-fetch employee with relations
+  // ✅ Return the updated employee with relations
   return await db.Employee.findByPk(id, {
     include: [
       { model: db.Account, as: 'account', attributes: ['id', 'email', 'firstName', 'lastName'] },
       { model: db.Department, as: 'department', attributes: ['id', 'name'] }
     ]
   });
-
-  //return basicDetails(employee);
 }
+
 
 // Delete employee
 async function _delete(id) {
@@ -82,6 +110,28 @@ async function getEmployee(id) {
   const employee = await db.Employee.findByPk(id);
   if (!employee) throw "Employee not found";
   return employee;
+}
+
+// Transfer employee to another department
+async function transferDepartment(id, { departmentId }) {
+  const employee = await getEmployee(id);
+  if (!employee) throw "Employee not found";
+
+  const department = await db.Department.findByPk(departmentId);
+  if (!department) throw `Department with ID "${departmentId}" not found`;
+
+  employee.departmentId = departmentId;
+  employee.updated = Date.now();
+
+  await employee.save();
+
+  // re-fetch with relations
+  return await db.Employee.findByPk(employee.employeeId, {   // ✅ use employeeId
+    include: [
+      { model: db.Account, as: 'account', attributes: ['id', 'email', 'firstName', 'lastName'] },
+      { model: db.Department, as: 'department', attributes: ['id', 'name'] }
+    ]
+  });
 }
 
 function basicDetails(employee) {

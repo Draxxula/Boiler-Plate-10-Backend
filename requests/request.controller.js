@@ -1,3 +1,4 @@
+// requests/request.controller.js
 const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
@@ -21,7 +22,7 @@ function createSchema(req, res, next) {
     type: Joi.string().required(),           // Equipment, Leave, etc.
     items: Joi.string().required(),          // Laptop (x1), Vacation (x5)
     status: Joi.string().valid('Pending', 'Approved', 'Rejected').default('Pending'),
-    employeeId: Joi.number().required()
+    employeeId: Joi.string().required()
   });
   validateRequest(req, next, schema);
 }
@@ -31,7 +32,7 @@ function updateSchema(req, res, next) {
     type: Joi.string().empty(''),
     items: Joi.string().empty(''),
     status: Joi.string().valid('Pending', 'Approved', 'Rejected').empty(''),
-    employeeId: Joi.number().empty('')
+    employeeId: Joi.string().empty('')
   });
   validateRequest(req, next, schema);
 }

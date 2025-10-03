@@ -1,3 +1,4 @@
+// requests/request.model.js
 const { DataTypes } = require('sequelize');
 
 module.exports = model;
@@ -5,8 +6,8 @@ module.exports = model;
 function model(sequelize) {
   const attributes = {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-    type: { type: DataTypes.ENUM('Equipment', 'Leave'), allowNull: false },
-    items: { type: DataTypes.STRING, allowNull: false },
+    type: { type: DataTypes.ENUM('Equipment', 'Leave', 'Resources'), allowNull: false },
+    items: { type: DataTypes.TEXT, allowNull: false },
     status: { 
       type: DataTypes.ENUM('Pending', 'Approved', 'Rejected'), 
       allowNull: false, 

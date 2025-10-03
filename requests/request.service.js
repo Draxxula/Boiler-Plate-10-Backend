@@ -1,3 +1,4 @@
+// requests/request.service.js
 const db = require('_helpers/db');
 
 module.exports = {
@@ -5,17 +6,18 @@ module.exports = {
   getById,
   create,
   update,
+  //basicDetails,
   delete: _delete
 };
 
 // Get all requests (with employee info)
 async function getAll() {
-  return await db.Request.findAll({
+  const requests = await db.Request.findAll({
     include: [
       {
         model: db.Employee,
         as: 'employee',
-        attributes: ['id', 'employeeId', 'position', 'status'],
+        attributes: [ 'employeeId', 'position', 'status'],
         include: [
           {
             model: db.Account,
@@ -26,13 +28,46 @@ async function getAll() {
       }
     ]
   });
+  return requests.map(r => ({
+    ...r.toJSON(),
+    items: parseItems(r.items)
+  }));
+}
+// Parse items field (JSON string or plain text)
+function parseItems(items) {
+  try {
+    return JSON.parse(items);
+  } catch {
+    return items; // fallback if plain string
+  }
 }
 
 // Get request by ID
 async function getById(id) {
-  const request = await getRequest(id);
-  return request;
+  const request = await db.Request.findByPk(id, {
+    include: [
+      {
+        model: db.Employee,
+        as: 'employee',
+        attributes: ['employeeId', 'position', 'status'],
+        include: [
+          {
+            model: db.Account,
+            as: 'account',
+            attributes: ['email', 'firstName', 'lastName', 'role']
+          }
+        ]
+      }
+    ]
+  });
+  if (!request) throw 'Request not found';
+
+  return {
+    ...request.toJSON(),
+    items: parseItems(request.items)
+  };
 }
+
 
 // Create new request
 async function create(params) {
@@ -51,7 +86,13 @@ async function update(id, params) {
   Object.assign(request, params);
   request.updated = Date.now();
 
-  await request.save();
+  try {
+    await request.save();
+  } catch (err) {
+    console.error('Update failed:', err);
+    throw err; // Let Express handle it
+  }
+
   return request;
 }
 
@@ -63,9 +104,13 @@ async function _delete(id) {
 
 // Helpers
 async function getRequest(id) {
-  const request = await db.Request.findByPk(id, {
-    include: [{ model: db.Employee, as: 'employee' }]
-  });
+  const request = await db.Request.findByPk(id);
   if (!request) throw 'Request not found';
+
   return request;
 }
+
+// function basicDetails(request) {
+//   const { id, type, items, status, employeeId } = request;
+//   return { id, type, items: parseItems(items), status, employeeId };
+// }

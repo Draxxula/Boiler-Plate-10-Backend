@@ -58,5 +58,6 @@ async function initialize() {
     // then requests
     await db.Request.sync();
     // sync all models with database
-    await sequelize.sync({ alter: true });
+    //await sequelize.sync({ alter: true });
+    await sequelize.sync();
 }

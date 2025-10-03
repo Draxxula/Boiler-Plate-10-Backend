@@ -45,8 +45,11 @@ async function getAll() {
 
 // Get department by ID
 async function getById(id) {
-  const department = await getDepartment(id);
-  return basicDetails(department);
+  const department = await db.Department.findByPk(id, {
+    include: [{ model: db.Employee, as: 'employees' }]
+  });
+  if (!department) throw "Department not found";
+  return department;
 }
 
 // Create new department
@@ -88,7 +91,7 @@ async function _delete(id) {
 // Helpers
 async function getDepartment(id) {
   const department = await db.Department.findByPk(id, {
-    include: [{ model: db.Employee }]
+    include: [{ model: db.Employee, as: 'employees' }]
   });
   if (!department) throw "Department not found";
   return department;
@@ -96,6 +99,6 @@ async function getDepartment(id) {
 
 function basicDetails(department) {
   const { id, name, description } = department;
-  const employeeCount = department.Employees ? department.Employees.length : 0;
+  const employeeCount = department.employees ? department.employees.length : 0;
   return { id, name, description, employeeCount };
 }
